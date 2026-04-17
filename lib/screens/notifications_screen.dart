@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import '../models/ambulance_models.dart';
 import '../models/app_user_model.dart';
+import '../services/ambulance_service.dart';
 import '../services/auth_service.dart';
 import '../widgets/app_widgets.dart';
 
@@ -12,6 +14,7 @@ class NotificationsScreen extends StatefulWidget {
 
 class _NotificationsScreenState extends State<NotificationsScreen> {
   AppUser? user;
+  AmbulanceBooking? booking;
 
   @override
   void initState() {
@@ -21,9 +24,11 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
 
   Future<void> loadUser() async {
     final currentUser = await AuthService.getCurrentUserProfile();
+    final activeBooking = await AmbulanceService.getCurrentUserBooking();
     if (!mounted) return;
     setState(() {
       user = currentUser;
+      booking = activeBooking;
     });
   }
 
@@ -39,20 +44,14 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
       return notifications;
     }
 
-    if (currentUser.licenseStatus == 'Renewal Requested') {
-      notifications.insert(0, 'Your license renewal request has been sent to admin and is awaiting review.');
+    final activeBooking = booking;
+    if (activeBooking != null) {
+      notifications.insert(0, 'Ambulance ETA: ${activeBooking.etaMinutes == 0 ? 'Arrived' : '${activeBooking.etaMinutes} min'} for ${activeBooking.providerName}.');
+      notifications.insert(0, 'Ambulance tracking update: ${activeBooking.currentPosition}.');
     }
 
-    if (currentUser.renewalTestDate.isNotEmpty) {
-      notifications.insert(0, 'Your renewal test date is ${currentUser.renewalTestDate}. Please be ready with your documents.');
-    }
-
-    if (currentUser.licenseStatus == 'Renewal Approved') {
-      notifications.insert(0, 'Your renewal request has been approved by admin.');
-    }
-
-    if (currentUser.licenseStatus == 'Renewal Rejected') {
-      notifications.insert(0, 'Your renewal request was rejected. Open the license screen to review the latest update.');
+    if ((currentUser.address).trim().isNotEmpty) {
+      notifications.insert(0, 'Default ambulance pickup location is set from your profile address.');
     }
 
     return notifications;
@@ -71,7 +70,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
           children: [
             const AppSectionTitle(
               title: 'Notifications',
-              subtitle: 'Complaint, renewal, and account updates for your DriveSafe profile.',
+              subtitle: 'Complaint, ambulance, and account updates for your DriveSafe profile.',
             ),
             const SizedBox(height: 16),
             Expanded(

@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:drive_safe_app/screens/admin_dashboard.dart';
+import 'package:drive_safe_app/screens/ambulance_screen.dart';
 import 'package:drive_safe_app/screens/dashboard_screen.dart';
-import 'package:drive_safe_app/screens/dl_screen.dart';
 import 'package:drive_safe_app/firebase_options.dart';
 import 'package:drive_safe_app/screens/login_screen.dart';
 import 'package:drive_safe_app/screens/notifications_screen.dart';
@@ -103,7 +103,8 @@ class MyApp extends StatelessWidget {
                 '/report': (_) => const ReportIssueScreen(),
                 '/track': (_) => const TrackScreen(),
                 '/profile': (_) => const ProfileScreen(),
-                '/dl': (_) => const DLScreen(),
+                '/ambulance': (_) => const AmbulanceScreen(),
+                '/dl': (_) => const AmbulanceScreen(),
                 '/notifications': (_) => const NotificationsScreen(),
                 '/settings': (_) => const SettingsScreen(),
               },

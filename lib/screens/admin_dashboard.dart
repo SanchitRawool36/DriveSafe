@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_map/flutter_map.dart';
+import 'package:latlong2/latlong.dart';
 import 'package:url_launcher/url_launcher.dart';
+import '../models/ambulance_models.dart';
 import '../models/app_user_model.dart';
 import '../models/complaint_model.dart';
+import '../services/ambulance_service.dart';
 import '../services/auth_service.dart';
 import '../services/complaint_repository.dart';
 import '../services/migration_service.dart';
@@ -18,6 +22,7 @@ class AdminDashboard extends StatefulWidget {
 
 class _AdminDashboardState extends State<AdminDashboard> {
   List<Complaint> complaints = [];
+  List<AmbulanceBooking> ambulanceBookings = [];
   List<AppUser> users = [];
   final TextEditingController searchController = TextEditingController();
   String selectedFilter = 'All';
@@ -58,6 +63,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
 
   Future<void> loadComplaints() async {
     final data = await ComplaintRepository.getComplaints();
+    final bookings = await AmbulanceService.getAllBookings();
     final allUsers = await AuthService.getAllUserProfiles();
     final summary = await MigrationService.getLegacySummary();
     final userIds = data
@@ -85,6 +91,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
     if (!mounted) return;
     setState(() {
       complaints = data;
+      ambulanceBookings = bookings;
       users = allUsers.where((user) => !user.isAdmin).toList();
       legacySummary = summary;
       stats = {
@@ -295,7 +302,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
       scheme: 'mailto',
       path: user.email.trim(),
       queryParameters: {
-        'subject': 'DriveSafe License Renewal',
+        'subject': 'DriveSafe Licence Renewal',
       },
     );
     final opened = await launchUrl(uri, mode: LaunchMode.externalApplication);
@@ -394,7 +401,9 @@ class _AdminDashboardState extends State<AdminDashboard> {
               ),
             ),
             const SizedBox(height: 12),
-            _buildRenewalSection(renewalUsers),
+            _buildEmergencySupportSection(),
+            const SizedBox(height: 16),
+            _buildAmbulanceBookingsSection(),
             const SizedBox(height: 16),
             if (visibleComplaints.isEmpty)
               AppInfoCard(
@@ -612,13 +621,13 @@ class _AdminDashboardState extends State<AdminDashboard> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const AppSectionTitle(
-          title: 'License Renewal Requests',
+          title: 'Licence Renewal Requests',
           subtitle: 'Review renewal requests and send the renewal test date to the user.',
         ),
         const SizedBox(height: 12),
         if (renewalUsers.isEmpty)
           const AppInfoCard(
-            child: Text('No license renewal requests found.'),
+            child: Text('No licence renewal requests found.'),
           )
         else
           for (final renewalUser in renewalUsers)
@@ -637,7 +646,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
                     const SizedBox(height: 4),
                     Text('Phone: ${renewalUser.phone.isEmpty ? '-' : renewalUser.phone}'),
                     const SizedBox(height: 4),
-                    Text('License No: ${renewalUser.licenseNumber}'),
+                    Text('Licence No: ${renewalUser.licenseNumber}'),
                     const SizedBox(height: 4),
                     Text('Vehicle Class: ${renewalUser.vehicleClass.isEmpty ? '-' : renewalUser.vehicleClass}'),
                     const SizedBox(height: 4),
@@ -689,6 +698,149 @@ class _AdminDashboardState extends State<AdminDashboard> {
                           label: const Text('Email'),
                         ),
                       ],
+                    ),
+                  ],
+                ),
+              ),
+            ),
+      ],
+    );
+  }
+
+  Widget _buildEmergencySupportSection() {
+    return AppInfoCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'Ambulance Service Update',
+            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+          ),
+          const SizedBox(height: 8),
+          const Text(
+            'Licence renewal has been removed from the active app flow. Users now access Ambulance Service for Government calling and Private booking with tracking.',
+            style: TextStyle(color: Colors.black54),
+          ),
+          const SizedBox(height: 12),
+          Wrap(
+            spacing: 10,
+            runSpacing: 10,
+            children: [
+              OutlinedButton.icon(
+                onPressed: () => Navigator.pushNamed(context, '/ambulance'),
+                icon: const Icon(Icons.local_hospital_outlined),
+                label: const Text('Open Ambulance Service'),
+              ),
+              OutlinedButton.icon(
+                onPressed: loadComplaints,
+                icon: const Icon(Icons.refresh),
+                label: const Text('Refresh Complaints'),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildAmbulanceBookingsSection() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        AppSectionTitle(
+          title: 'Ambulance Bookings',
+          subtitle: 'See who booked an ambulance, why it was booked, the pickup point, and the current fake live travel status.',
+        ),
+        const SizedBox(height: 12),
+        if (ambulanceBookings.isEmpty)
+          const AppInfoCard(
+            child: Text('No ambulance bookings found yet.'),
+          )
+        else
+          for (final booking in ambulanceBookings)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 12),
+              child: AppInfoCard(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            '${booking.providerName} • ${booking.providerArea}',
+                            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                          ),
+                        ),
+                        ComplaintStatusChip(status: booking.status),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    Text('Booked by: ${booking.bookedByName}'),
+                    const SizedBox(height: 4),
+                    Text('Contact: ${booking.bookedByPhone.isEmpty ? booking.phoneNumber : booking.bookedByPhone}'),
+                    if (booking.bookedByEmail.isNotEmpty) ...[
+                      const SizedBox(height: 4),
+                      Text('Email: ${booking.bookedByEmail}'),
+                    ],
+                    const SizedBox(height: 4),
+                    Text('Patient: ${booking.patientName}'),
+                    const SizedBox(height: 4),
+                    Text('Reason: ${booking.emergencyReason}'),
+                    const SizedBox(height: 4),
+                    Text('Booked at: ${booking.bookedAtIso.replaceFirst('T', ' ').split('.').first}'),
+                    const SizedBox(height: 4),
+                    Text('Pickup: ${booking.pickupLocation}'),
+                    const SizedBox(height: 4),
+                    Text('Current travel note: ${booking.currentPosition}'),
+                    const SizedBox(height: 4),
+                    Text('ETA: ${booking.etaMinutes == 0 ? 'Arrived' : '${booking.etaMinutes} min'} • Payment: ${booking.paymentMethod} • Rs. ${booking.serviceFee}'),
+                    const SizedBox(height: 12),
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(12),
+                      child: SizedBox(
+                        height: 220,
+                        width: double.infinity,
+                        child: FlutterMap(
+                          options: MapOptions(
+                            initialCenter: LatLng(booking.currentLatitude, booking.currentLongitude),
+                            initialZoom: 12.6,
+                          ),
+                          children: [
+                            TileLayer(
+                              urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                              userAgentPackageName: 'com.example.drive_safe_app',
+                            ),
+                            PolylineLayer(
+                              polylines: [
+                                Polyline(
+                                  points: booking.routePoints
+                                      .map((point) => LatLng(point['lat'] ?? 0, point['lon'] ?? 0))
+                                      .toList(),
+                                  strokeWidth: 4,
+                                  color: const Color(0xFF0B65C2),
+                                ),
+                              ],
+                            ),
+                            MarkerLayer(
+                              markers: [
+                                Marker(
+                                  point: LatLng(booking.pickupLatitude, booking.pickupLongitude),
+                                  width: 42,
+                                  height: 42,
+                                  child: const Icon(Icons.place, color: Colors.redAccent, size: 34),
+                                ),
+                                Marker(
+                                  point: LatLng(booking.currentLatitude, booking.currentLongitude),
+                                  width: 48,
+                                  height: 48,
+                                  child: const Icon(Icons.local_hospital, color: Colors.green, size: 34),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
                     ),
                   ],
                 ),

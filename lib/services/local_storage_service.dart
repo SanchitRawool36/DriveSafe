@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:uuid/uuid.dart';
+import '../models/ambulance_models.dart';
 import '../models/app_settings_model.dart';
 import '../models/app_user_model.dart';
 import '../models/complaint_model.dart';
@@ -16,6 +17,7 @@ class LocalStorageService {
   static const String settingsKey = 'app_settings';
   static const String adminSessionKey = 'admin_session';
   static const String legacyMigratedKey = 'legacy_data_migrated';
+  static const String ambulanceBookingKey = 'ambulance_booking';
   static final ValueNotifier<AppSettings> settingsNotifier = ValueNotifier(const AppSettings());
 
   static bool isAdminIdentifier(String identifier) {
@@ -229,6 +231,25 @@ class LocalStorageService {
     await prefs.setStringList(complaintKey, updated);
   }
 
+  static Future<void> saveAmbulanceBooking(AmbulanceBooking booking) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(ambulanceBookingKey, jsonEncode(booking.toJson()));
+  }
+
+  static Future<AmbulanceBooking?> getAmbulanceBooking() async {
+    final prefs = await SharedPreferences.getInstance();
+    final data = prefs.getString(ambulanceBookingKey);
+    if (data == null || data.isEmpty) {
+      return null;
+    }
+    return AmbulanceBooking.fromJson(jsonDecode(data));
+  }
+
+  static Future<void> clearAmbulanceBooking() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove(ambulanceBookingKey);
+  }
+
   static Future<void> clearAll() async {
     final prefs = await SharedPreferences.getInstance();
     await SessionStore.remove(currentUserKey);
@@ -237,6 +258,7 @@ class LocalStorageService {
     await prefs.remove(complaintKey);
     await prefs.remove(settingsKey);
     await prefs.remove(legacyMigratedKey);
+    await prefs.remove(ambulanceBookingKey);
     settingsNotifier.value = const AppSettings();
   }
 

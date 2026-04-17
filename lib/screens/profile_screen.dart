@@ -262,7 +262,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     children: [
                       _metaChip(Icons.place_outlined, currentUser.address),
                       _metaChip(Icons.phone_outlined, currentUser.phone),
-                      _metaChip(Icons.verified_user_outlined, currentUser.licenseStatus),
+                      _metaChip(Icons.local_hospital_outlined, 'Ambulance Help'),
                     ],
                   ),
                   const SizedBox(height: 18),
@@ -355,7 +355,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     spacing: 10,
                     runSpacing: 10,
                     children: [
-                      _actionTile('License', Icons.badge, () => Navigator.pushNamed(context, '/dl')),
+                      _actionTile('Ambulance', Icons.local_hospital, () => Navigator.pushNamed(context, '/ambulance')),
                       _actionTile('Track', Icons.route, () => Navigator.pushNamed(context, '/track')),
                       _actionTile('Settings', Icons.settings, () => Navigator.pushNamed(context, '/settings')),
                       _actionTile('Logout', Icons.logout, () async {
@@ -664,7 +664,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             scrollDirection: Axis.horizontal,
             child: Row(
               children: [
-                _highlightItem('License', Icons.badge_outlined, const Color(0xFF0B65C2)),
+                _highlightItem('Ambulance', Icons.local_hospital_outlined, const Color(0xFF0B65C2)),
                 _highlightItem('Reports', Icons.report_gmailerrorred, const Color(0xFFF6B400)),
                 _highlightItem('Safety', Icons.shield_outlined, Colors.green),
                 _highlightItem('Contact', Icons.contact_phone_outlined, Colors.redAccent),
@@ -690,26 +690,23 @@ class _ProfileScreenState extends State<ProfileScreen> {
           const SizedBox(height: 6),
           Text('Address: ${currentUser.address}'),
           const SizedBox(height: 16),
-          const Text('License Status', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+          const Text('Ambulance Support', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
           const SizedBox(height: 10),
-          ComplaintStatusChip(status: currentUser.licenseStatus == 'Active' ? 'Accepted' : currentUser.licenseStatus),
-          const SizedBox(height: 6),
-          Text(
-            currentUser.hasCompletedLicenseProfile
-                ? 'License No: ${currentUser.licenseNumber}'
-                : 'License profile is not completed yet.',
+          const Text(
+            'Need urgent medical transport? Open Ambulance Service to call Government support or book a Private ambulance with tracking.',
           ),
-          if (currentUser.hasCompletedLicenseProfile) ...[
+          const SizedBox(height: 6),
+          if (currentUser.address.trim().isNotEmpty) ...[
             const SizedBox(height: 6),
-            Text('Valid Till: ${currentUser.expiryDate}'),
+            Text('Default pickup location: ${currentUser.address}'),
           ],
           const SizedBox(height: 12),
           SizedBox(
             width: double.infinity,
             child: OutlinedButton.icon(
-              onPressed: () => Navigator.pushNamed(context, '/dl'),
-              icon: const Icon(Icons.badge_outlined),
-              label: Text(currentUser.hasCompletedLicenseProfile ? 'Manage License' : 'Complete License Form'),
+              onPressed: () => Navigator.pushNamed(context, '/ambulance'),
+              icon: const Icon(Icons.local_hospital_outlined),
+              label: const Text('Open Ambulance Service'),
             ),
           ),
         ],

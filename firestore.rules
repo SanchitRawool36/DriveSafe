@@ -39,5 +39,12 @@ service cloud.firestore {
       allow update: if signedIn() && (resource.data.userId == request.auth.uid || isAdmin());
       allow delete: if isAdmin();
     }
+
+    match /ambulance_bookings/{bookingId} {
+      allow read: if signedIn() && (resource.data.bookedByUserId == request.auth.uid || isAdmin());
+      allow create: if signedIn() && request.resource.data.bookedByUserId == request.auth.uid;
+      allow update: if signedIn() && (resource.data.bookedByUserId == request.auth.uid || isAdmin());
+      allow delete: if isAdmin();
+    }
   }
 }

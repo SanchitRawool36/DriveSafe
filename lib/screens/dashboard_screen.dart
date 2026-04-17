@@ -5,6 +5,7 @@ import '../services/complaint_repository.dart';
 import '../services/auth_service.dart';
 import '../utils/ui_feedback.dart';
 import '../widgets/app_widgets.dart';
+import 'ambulance_screen.dart';
 import 'complaint_detail_screen.dart';
 import 'incidents_screen.dart';
 import 'report_issue_screen.dart';
@@ -184,6 +185,20 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       ),
                       OutlinedButton.icon(
                         onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(builder: (_) => const AmbulanceScreen()),
+                          );
+                        },
+                        icon: const Icon(Icons.local_hospital_outlined),
+                        label: const Text('Ambulance'),
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: Colors.white,
+                          side: const BorderSide(color: Colors.white70),
+                        ),
+                      ),
+                      OutlinedButton.icon(
+                        onPressed: () {
                           Navigator.pushNamed(context, '/profile').then((_) => loadComplaints());
                         },
                         icon: const Icon(Icons.person),
@@ -264,6 +279,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         icon: Icons.person,
                         onTap: () {
                           Navigator.pushNamed(context, '/profile').then((_) => loadComplaints());
+                        },
+                      ),
+                      _actionChip(
+                        label: 'Ambulance',
+                        icon: Icons.local_hospital,
+                        onTap: () {
+                          Navigator.pushNamed(context, '/ambulance');
                         },
                       ),
                     ],

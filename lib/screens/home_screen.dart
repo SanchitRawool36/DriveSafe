@@ -3,7 +3,7 @@ import 'login_screen.dart';
 import 'register_screen.dart';
 import 'report_issue_screen.dart';
 import 'track_screen.dart';
-import 'dl_screen.dart';
+import 'ambulance_screen.dart';
 import '../widgets/app_widgets.dart';
 
 class HomeScreen extends StatelessWidget {
@@ -51,7 +51,7 @@ class HomeScreen extends StatelessWidget {
             const SizedBox(height: 20),
             const AppSectionTitle(
               title: 'Welcome To Drive Safe',
-              subtitle: 'Local prototype for crowd reporting and digital license workflows.',
+              subtitle: 'Local prototype for crowd reporting and emergency ambulance support workflows.',
             ),
             const SizedBox(height: 20),
 
@@ -59,7 +59,7 @@ class HomeScreen extends StatelessWidget {
             buildSecondaryButton(context, "Register", const RegisterScreen()),
             buildButton(context, "Report Issue", const ReportIssueScreen()),
             buildButton(context, "Track Complaints", const TrackScreen()),
-            buildSecondaryButton(context, "Apply Driving License", const DLScreen()),
+            buildSecondaryButton(context, "Ambulance Service", const AmbulanceScreen()),
           ],
         ),
       ),
